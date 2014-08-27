@@ -86,9 +86,6 @@ public class TextXiaohuaZol {
 							String title = titleE.text();
 
 							String text = content.text();
-							if (log.isDebugEnabled()) {
-								log.debug("content size:" + text.length());
-							}
 							int col = 0;
 							Map<String, Object> me = randFetchMember.next();
 							stmt_insert.setString(++col, title);

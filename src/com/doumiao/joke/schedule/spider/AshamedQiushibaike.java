@@ -42,7 +42,7 @@ public class AshamedQiushibaike {
 	@Scheduled(fixedDelay = 240000)
 	@Test
 	public void fetch() {
-		int maxPage = Integer.parseInt(Config.get("fetch_pages_qiushibaike"));
+		int maxPage = Integer.parseInt(Config.get("fetch_pages_qiushi_qiushibaike"));
 		int count = maxPage;
 		String site = "qiushibaike.com";
 		Connection con = null;
@@ -78,7 +78,7 @@ public class AshamedQiushibaike {
 						Element contentE = e.select("div.content").first();
 						Element img = e.select("div.thumb").first();
 						String content = contentE.text();
-						if (img != null && content.length() < 40) {
+						if (img != null && content.length() < 100) {
 							continue;
 						}
 						stmt_select.setString(1, site);
