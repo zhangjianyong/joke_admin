@@ -39,10 +39,10 @@ public class AshamedQiushibaike {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 240000)
+	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = Integer.parseInt(Config.get("fetch_pages_qiushi_qiushibaike"));
+		int maxPage = Config.getInt("fetch_pages_text_mahua",10);
 		int count = maxPage;
 		String site = "qiushibaike.com";
 		Connection con = null;
@@ -56,6 +56,7 @@ public class AshamedQiushibaike {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
+			int sum = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				String url = "http://www.qiushibaike.com/late/page/" + page;
 				if (log.isDebugEnabled()) {
@@ -89,6 +90,7 @@ public class AshamedQiushibaike {
 						if (rs.getInt("c") > 0) {
 							continue;
 						}
+						sum++;
 						int col = 0;
 						Map<String, Object> me = randFetchMember.next();
 						stmt_insert.setString(++col, null);
@@ -106,6 +108,9 @@ public class AshamedQiushibaike {
 				} catch (Exception e) {
 					log.error(url);
 				}
+			}
+			if(log.isInfoEnabled()){
+				log.info("fetch new article:"+sum);
 			}
 		} catch (Exception e) {
 			log.error(e, e);

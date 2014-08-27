@@ -23,7 +23,7 @@ public class UploadPic {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	@Scheduled(fixedDelay = 10000)
+	@Scheduled(fixedDelay = 60000)
 	public void upload() {
 
 		UpYun upyun = new UpYun("yixiaoqianjin", "zhangjianyong", "Danawa1234");
@@ -31,12 +31,14 @@ public class UploadPic {
 		upyun.setTimeout(60);
 		upyun.setDebug(true);
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, article_id, pic from joke_upload_pic limit 0,100");
+				.queryForList("select id, article_id, pic from joke_upload_pic order by id limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
 						"select value from joke_config where `key` = 'pic_upload_path'",
 						String.class);
+		int sum=0,error=0;
+		
 		for (Map<String, Object> article : articles) {
 			try {
 				int id = (Integer) article.get("id");
@@ -56,6 +58,7 @@ public class UploadPic {
 				params.put(PARAMS.KEY_X_GMKERL_QUALITY.getValue(), "95");
 				params.put(PARAMS.KEY_X_GMKERL_UNSHARP.getValue(), "true");
 				boolean r = upyun.writeFile("/article/90"+pic, picFile, true, params);
+				sum++;
 				if (result & r) {
 					jdbcTemplate.update(
 							"update joke_article set `status` = ? where id = ?",
@@ -63,6 +66,7 @@ public class UploadPic {
 					jdbcTemplate.update(
 							"delete from joke_upload_pic where id = ?", id);
 				} else {
+					error++;
 					log.error("上传失败:" + picFile.getAbsolutePath());
 				}
 			} catch (FileNotFoundException fnfe) {
@@ -70,6 +74,9 @@ public class UploadPic {
 			} catch (Exception e) {
 				log.error(e, e);
 			}
+		}
+		if(log.isInfoEnabled()){
+			log.info("upload pic:"+sum+" error:"+error);
 		}
 	}
 }

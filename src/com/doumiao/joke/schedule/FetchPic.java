@@ -7,6 +7,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.SocketTimeoutException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -48,10 +49,12 @@ public class FetchPic {
 		HttpGet get = null;
 		HttpEntity entity = null;
 		FileOutputStream fout = null;
+		int sum=0;
 		for (Map<String, Object> article : articles) {
+			String url=null;
 			try {
 				int id = (Integer) article.get("id");
-				String url = (String) article.get("pic_ori");
+				url = (String) article.get("pic_ori");
 				get = new HttpGet(url);
 				HttpResponse response = client.execute(get);
 				entity = response.getEntity();
@@ -95,18 +98,24 @@ public class FetchPic {
 				g.dispose();
 				fout = new FileOutputStream(file);
 				ImageIO.write(buffImg, "JPG", fout);
+				sum++;
 				jdbcTemplate
 						.update("update joke_article set pic = ?, status = ? where id = ?",
 								fileName, 1, id);
 				jdbcTemplate
 						.update("insert into joke_upload_pic(article_id, pic) values(?,?)",
 								id, fileName);
-			} catch (Exception e) {
+			}catch(SocketTimeoutException ste){
+				log.error(url);
+			}catch (Exception e) {
 				log.error(e, e);
 			} finally {
 				EntityUtils.consumeQuietly(entity);
 				IOUtils.closeQuietly(fout);
 			}
+		}
+		if(log.isInfoEnabled()){
+			log.info("fetch pic:"+sum);
 		}
 	}
 	public static void main(String[] args) {

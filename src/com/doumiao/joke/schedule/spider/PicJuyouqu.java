@@ -36,7 +36,7 @@ public class PicJuyouqu {
 	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = Integer.parseInt(Config.get("fetch_pages_pic_juyouqu"));
+		int maxPage = Config.getInt("fetch_pages_text_mahua",10);
 		int count = maxPage;
 		String site = "juyouqu.com";
 		Connection con = null;
@@ -51,7 +51,7 @@ public class PicJuyouqu {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
-
+			int sum = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				url = "http://www.juyouqu.com/page/" + page;
 				if (log.isDebugEnabled()) {
@@ -87,6 +87,7 @@ public class PicJuyouqu {
 						if (rs.getInt("c") > 0) {
 							continue;
 						}
+						sum++;
 						int col = 0;
 						Map<String, Object> me = randFetchMember.next();
 						stmt_insert.setString(++col, title);
@@ -104,6 +105,9 @@ public class PicJuyouqu {
 				} catch (Exception e) {
 					log.error(url);
 				}
+			}
+			if(log.isInfoEnabled()){
+				log.info("fetch new article:"+sum);
 			}
 		}catch (Exception e) {
 			log.error(e, e);

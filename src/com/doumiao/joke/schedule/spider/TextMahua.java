@@ -37,11 +37,11 @@ public class TextMahua {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 180000)
+	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = 0;
-		int count = Integer.parseInt(Config.get("fetch_pages_text_mahua"));
+		int count = Config.getInt("fetch_pages_text_mahua",10);
 		String site = "mahua.com";
 		try {
 			String url = "http://www.mahua.com/newjokes/text/index.htm";
@@ -76,6 +76,7 @@ public class TextMahua {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
+			int sum = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				String url = "http://www.mahua.com/newjokes/text/index_" + page
 						+ ".htm";
@@ -100,6 +101,7 @@ public class TextMahua {
 							if (rs.getInt("c") > 0) {
 								continue;
 							}
+							sum++;
 							Document single = Jsoup.connect(
 									"http://www.mahua.com/xiaohua/" + id
 											+ ".htm").get();
@@ -128,6 +130,9 @@ public class TextMahua {
 				} catch (Exception e) {
 					log.error(url);
 				}
+			}
+			if(log.isInfoEnabled()){
+				log.info("fetch new article:"+sum);
 			}
 		} catch (Exception e) {
 			log.error(e, e);

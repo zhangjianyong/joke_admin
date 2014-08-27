@@ -35,10 +35,10 @@ public class TextXiaohuaZol {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 240000)
+	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = Integer.parseInt(Config.get("fetch_pages_text_xiaohua"));
+		int maxPage = Config.getInt("fetch_pages_text_xiaohua",10);
 		int count = maxPage;
 		String site = "xiaohua.zol.com.cn";
 		Connection con = null;
@@ -52,6 +52,7 @@ public class TextXiaohuaZol {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
+			int sum = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				String url = "http://xiaohua.zol.com.cn/new/" + page + ".html";
 				if (log.isDebugEnabled()) {
@@ -76,6 +77,7 @@ public class TextXiaohuaZol {
 							if (rs.getInt("c") > 0) {
 								continue;
 							}
+							sum++;
 							Document single = Jsoup.connect(
 									"http://xiaohua.zol.com.cn/detail43/" + id
 											+ ".html").get();
@@ -105,6 +107,9 @@ public class TextXiaohuaZol {
 				} catch (Exception e) {
 					log.error(url);
 				}
+			}
+			if(log.isInfoEnabled()){
+				log.info("fetch new article:"+sum);
 			}
 		} catch (Exception e) {
 			log.error(e, e);
