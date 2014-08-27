@@ -3,6 +3,7 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,6 +22,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
+import com.doumiao.joke.schedule.Config;
+import com.doumiao.joke.schedule.RandFetchMember;
 
 @Component
 public class TextXiaohuaZol {
@@ -29,11 +32,14 @@ public class TextXiaohuaZol {
 	@Resource
 	private DataSource dataSource;
 
+	@Resource
+	private RandFetchMember randFetchMember;
+
 	@Scheduled(fixedDelay = 240000)
 	@Test
 	public void fetch() {
-		int maxPage = 10;
-		int count = 10;
+		int maxPage = Integer.parseInt(Config.get("fetch_pages_text_xiaohua"));
+		int count = maxPage;
 		String site = "xiaohua.zol.com.cn";
 		Connection con = null;
 		PreparedStatement stmt_insert = null;
@@ -42,7 +48,7 @@ public class TextXiaohuaZol {
 		try {
 			con = dataSource.getConnection();
 			stmt_insert = con
-					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid) values(?,?,?,?,?)");
+					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id, member_nick) values(?,?,?,?,?,?,?)");
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
@@ -51,47 +57,57 @@ public class TextXiaohuaZol {
 				if (log.isDebugEnabled()) {
 					log.debug("fetching " + url);
 				}
-				Document listDoc = Jsoup.connect(url).get();
-				Elements es = listDoc.select("li.article-summary span.article-title a");
-				for (int i = 0; i < es.size(); i++) {
-					Element e = es.get(i);
-					String uri = e.attr("href");
-					Pattern pa = Pattern.compile("(?:.*)/(\\d*).html");
-					Matcher m = pa.matcher(uri);
-					if (m.find()) {
-						String id = m.group(1);
-						stmt_select.setString(1, site);
-						stmt_select.setString(2, id);
-						stmt_select.setString(3, ArticleType.TEXT.name());
-						rs = stmt_select.executeQuery();
-						rs.next();
-						if (rs.getInt("c") > 0) {
-							continue;
+				try {
+					Document listDoc = Jsoup.connect(url).get();
+					Elements es = listDoc
+							.select("li.article-summary span.article-title a");
+					for (int i = 0; i < es.size(); i++) {
+						Element e = es.get(i);
+						String uri = e.attr("href");
+						Pattern pa = Pattern.compile("(?:.*)/(\\d*).html");
+						Matcher m = pa.matcher(uri);
+						if (m.find()) {
+							String id = m.group(1);
+							stmt_select.setString(1, site);
+							stmt_select.setString(2, id);
+							stmt_select.setString(3, ArticleType.TEXT.name());
+							rs = stmt_select.executeQuery();
+							rs.next();
+							if (rs.getInt("c") > 0) {
+								continue;
+							}
+							Document single = Jsoup.connect(
+									"http://xiaohua.zol.com.cn/detail43/" + id
+											+ ".html").get();
+							Element titleE = single.select("h1.article-title")
+									.last();
+							Element content = single.select("div.article-text")
+									.first();
+							String title = titleE.text();
+
+							String text = content.text();
+							if (log.isDebugEnabled()) {
+								log.debug("content size:" + text.length());
+							}
+							int col = 0;
+							Map<String, Object> me = randFetchMember.next();
+							stmt_insert.setString(++col, title);
+							stmt_insert.setString(++col, text);
+							stmt_insert.setString(++col,
+									ArticleType.TEXT.name());
+							stmt_insert.setString(++col, site);
+							stmt_insert.setString(++col, id);
+							stmt_insert.setInt(++col, (Integer) me.get("id"));
+							stmt_insert.setString(++col,
+									(String) me.get("nick"));
+							stmt_insert.addBatch();
 						}
-						Document single = Jsoup.connect(
-								"http://xiaohua.zol.com.cn/detail43/" + id + ".html")
-								.get();
-						Element titleE = single.select("h1.article-title")
-								.last();
-						Element content = single.select("div.article-text")
-								.first();
-						String title = titleE.text();
-						
-						String text = content.text();
-						if(log.isDebugEnabled()){
-							log.debug("content size:"+text.length());
-						}
-						int col = 0;
-						stmt_insert.setString(++col, title);
-						stmt_insert.setString(++col, text);
-						stmt_insert.setString(++col, ArticleType.TEXT.name());
-						stmt_insert.setString(++col, site);
-						stmt_insert.setString(++col, id);
-						stmt_insert.addBatch();
 					}
+					stmt_insert.executeBatch();
+					con.commit();
+				} catch (Exception e) {
+					log.error(url);
 				}
-				stmt_insert.executeBatch();
-				con.commit();
 			}
 		} catch (Exception e) {
 			log.error(e, e);

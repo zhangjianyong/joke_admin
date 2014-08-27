@@ -1,4 +1,4 @@
-package com.doumiao.joke.schedule.spider;
+package com.doumiao.joke.schedule;
 
 import java.io.BufferedReader;
 import java.io.File;

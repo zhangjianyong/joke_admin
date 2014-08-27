@@ -1,10 +1,10 @@
 package com.doumiao.joke.schedule.spider;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +24,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
+import com.doumiao.joke.schedule.Config;
+import com.doumiao.joke.schedule.RandFetchMember;
 
 @Component
 public class TextMahua {
@@ -32,11 +34,14 @@ public class TextMahua {
 	@Resource
 	private DataSource dataSource;
 
+	@Resource
+	private RandFetchMember randFetchMember;
+
 	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
-		int maxPage = 10;
-		int count = 10;
+		int maxPage = 0;
+		int count = Integer.parseInt(Config.get("fetch_pages_text_mahua"));
 		String site = "mahua.com";
 		try {
 			String url = "http://www.mahua.com/newjokes/text/index.htm";
@@ -66,57 +71,64 @@ public class TextMahua {
 		ResultSet rs = null;
 		try {
 			con = dataSource.getConnection();
-			 stmt_insert = con
-			 .prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid ) values(?,?,?,?,?)");
-			 stmt_select = con
-			 .prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
-			 con.setAutoCommit(false);
+			stmt_insert = con
+					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id, member_nick ) values(?,?,?,?,?,?,?)");
+			stmt_select = con
+					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
+			con.setAutoCommit(false);
 			for (int page = maxPage; page > maxPage - count; page--) {
-				String url  = "http://www.mahua.com/newjokes/text/index_" + page
-							+ ".htm";
+				String url = "http://www.mahua.com/newjokes/text/index_" + page
+						+ ".htm";
 				if (log.isDebugEnabled()) {
 					log.debug("fetching " + url);
 				}
-				Document listDoc = Jsoup.connect(url).get();
-				Elements es = listDoc.select("div.mahua h3 a");
-				for (int i = 0; i < es.size(); i++) {
-					Element e = es.get(i);
-					String uri = e.attr("href");
-					Pattern pa = Pattern.compile("(?:.*)/(\\d*).htm");
-					Matcher m = pa.matcher(uri);
-					if (m.find()) {
-						String id = m.group(1);
-						stmt_select.setString(1, site);
-						stmt_select.setString(2, id);
-						stmt_select.setString(3, ArticleType.TEXT.name());
-						rs = stmt_select.executeQuery();
-						rs.next();
-						if (rs.getInt("c") > 0) {
-							continue;
+				try {
+					Document listDoc = Jsoup.connect(url).get();
+					Elements es = listDoc.select("div.mahua h3 a");
+					for (int i = 0; i < es.size(); i++) {
+						Element e = es.get(i);
+						String uri = e.attr("href");
+						Pattern pa = Pattern.compile("(?:.*)/(\\d*).htm");
+						Matcher m = pa.matcher(uri);
+						if (m.find()) {
+							String id = m.group(1);
+							stmt_select.setString(1, site);
+							stmt_select.setString(2, id);
+							stmt_select.setString(3, ArticleType.TEXT.name());
+							rs = stmt_select.executeQuery();
+							rs.next();
+							if (rs.getInt("c") > 0) {
+								continue;
+							}
+							Document single = Jsoup.connect(
+									"http://www.mahua.com/xiaohua/" + id
+											+ ".htm").get();
+							Element titleE = single.select(
+									"h1[id=t_" + id + "]").last();
+							Element content = single.select("div[id=content]")
+									.first();
+							String title = titleE.text();
+							String text = content.text();
+							int col = 0;
+							Map<String, Object> me = randFetchMember.next();
+							stmt_insert.setString(++col, title);
+							stmt_insert.setString(++col, text);
+							stmt_insert.setString(++col,
+									ArticleType.TEXT.name());
+							stmt_insert.setString(++col, site);
+							stmt_insert.setString(++col, id);
+							stmt_insert.setInt(++col, (Integer) me.get("id"));
+							stmt_insert.setString(++col,
+									(String) me.get("nick"));
+							stmt_insert.addBatch();
 						}
-						Document single = Jsoup.connect(
-								"http://www.mahua.com/xiaohua/" + id + ".htm")
-								.get();
-						Element titleE = single.select("h1[id=t_" + id + "]")
-								.last();
-						Element content = single.select("div[id=content]")
-								.first();
-						String title = titleE.text();
-						String text = content.text();
-						int col = 0;
-						stmt_insert.setString(++col, title);
-						stmt_insert.setString(++col, text);
-						stmt_insert.setString(++col, ArticleType.TEXT.name());
-						stmt_insert.setString(++col, site);
-						stmt_insert.setString(++col, id);
-						stmt_insert.addBatch();
 					}
+					stmt_insert.executeBatch();
+					con.commit();
+				} catch (Exception e) {
+					log.error(url);
 				}
-				stmt_insert.executeBatch();
-				con.commit();
 			}
-		} catch (SocketTimeoutException ste) {
-			log.equals("timeout");
 		} catch (Exception e) {
 			log.error(e, e);
 		} finally {

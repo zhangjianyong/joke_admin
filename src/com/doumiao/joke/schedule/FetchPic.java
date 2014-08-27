@@ -1,5 +1,10 @@
-package com.doumiao.joke.schedule.spider;
+package com.doumiao.joke.schedule;
 
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Calendar;
@@ -7,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -32,7 +38,7 @@ public class FetchPic {
 	@Scheduled(fixedDelay = 60000)
 	public void fetch() {
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and is_show = 0 limit 0,100");
+				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
@@ -51,18 +57,47 @@ public class FetchPic {
 				entity = response.getEntity();
 				Calendar c = Calendar.getInstance();
 				int year = c.get(Calendar.YEAR);
-				int month = c.get(Calendar.MONTH);
+				int month = c.get(Calendar.MONTH) + 1;
 				long millis = c.getTimeInMillis();
-				String fileName = year + "/" + month + "/" + millis + ".jpg";
-				File file = new File(path + fileName);
+				String fileName = "/" + year + "/" + month + "/" + millis
+						+ ".jpg";
+				File file = new File(path + "/" + fileName);
 				if (!file.getParentFile().exists()) {
 					file.getParentFile().mkdirs();
 				}
+				Image srcImg = ImageIO.read(entity.getContent());
+				int w = srcImg.getWidth(null);
+				int h = srcImg.getHeight(null);
+				BufferedImage buffImg = new BufferedImage(
+						srcImg.getWidth(null), srcImg.getHeight(null),
+						BufferedImage.TYPE_INT_RGB);
+				Graphics2D g = buffImg.createGraphics();
+				g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+						RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+				g.drawImage(srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
+						0, 0, null);
+				Image img = ImageIO
+						.read(FetchPic.class.getResourceAsStream("logo.png"));
+				// ImageIcon imgIcon = new ImageIcon(
+				// "D:/data/workspace/pri/java/joke_admin/WebContent/logo.png");
+				// Image img = imgIcon.getImage();
+				int _w = img.getWidth(null);
+				int _h = img.getHeight(null);
+				g.setComposite(AlphaComposite.getInstance(
+						AlphaComposite.SRC_ATOP, 1f));
+				int __h = _h > (int) (0.2 * h) ? (int) (0.2 * h) : _h;
+				int __w = (int) ((double) __h / _h * _w);
+				g.drawImage(
+						img.getScaledInstance(__w, __h, Image.SCALE_SMOOTH), w
+								- __w - 10, h - __h - 10, null);
+				g.setComposite(AlphaComposite
+						.getInstance(AlphaComposite.SRC_OVER));
+				g.dispose();
 				fout = new FileOutputStream(file);
-				IOUtils.copy(entity.getContent(), fout);
-				jdbcTemplate.update(
-						"update joke_article set pic = ? where id = ?",
-						fileName, id);
+				ImageIO.write(buffImg, "JPG", fout);
+				jdbcTemplate
+						.update("update joke_article set pic = ?, status = ? where id = ?",
+								fileName, 1, id);
 				jdbcTemplate
 						.update("insert into joke_upload_pic(article_id, pic) values(?,?)",
 								id, fileName);
@@ -73,5 +108,8 @@ public class FetchPic {
 				IOUtils.closeQuietly(fout);
 			}
 		}
+	}
+	public static void main(String[] args) {
+		System.out.println(ClassLoader.getSystemResourceAsStream("logo.png"));
 	}
 }
