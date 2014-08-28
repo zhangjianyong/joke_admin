@@ -36,7 +36,7 @@ public class PicJuyouqu {
 	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = Config.getInt("fetch_pages_text_mahua",10);
+		int maxPage = Config.getInt("fetch_pages_text_mahua", 10);
 		int count = maxPage;
 		String site = "juyouqu.com";
 		Connection con = null;
@@ -91,8 +91,16 @@ public class PicJuyouqu {
 						int col = 0;
 						Map<String, Object> me = randFetchMember.next();
 						stmt_insert.setString(++col, title);
-						stmt_insert.setString(++col,
-								content.replace("!w500", ""));
+						if (content.endsWith(".gifstatic")) {
+							stmt_insert.setString(++col,
+									content.replace(".gifstatic", ".gif"));
+						} else if (content.endsWith("!w500")) {
+							stmt_insert.setString(++col,
+									content.replace("!w500", ""));
+						} else {
+							stmt_insert.setString(++col, content);
+						}
+
 						stmt_insert.setString(++col, ArticleType.PIC.name());
 						stmt_insert.setString(++col, site);
 						stmt_insert.setString(++col, id);
@@ -106,10 +114,10 @@ public class PicJuyouqu {
 					log.error(url);
 				}
 			}
-			if(log.isInfoEnabled()){
-				log.info("fetch new article:"+sum);
+			if (log.isInfoEnabled()) {
+				log.info("fetch new article:" + sum);
 			}
-		}catch (Exception e) {
+		} catch (Exception e) {
 			log.error(e, e);
 		} finally {
 			JdbcUtils.closeConnection(con);

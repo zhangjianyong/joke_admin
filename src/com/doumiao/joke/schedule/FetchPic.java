@@ -39,7 +39,7 @@ public class FetchPic {
 	@Scheduled(fixedDelay = 60000)
 	public void fetch() {
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 limit 0,100");
+				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 order by id limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
@@ -55,6 +55,7 @@ public class FetchPic {
 			try {
 				int id = (Integer) article.get("id");
 				url = (String) article.get("pic_ori");
+				String picType = url.substring(url.lastIndexOf(".")+1);
 				get = new HttpGet(url);
 				HttpResponse response = client.execute(get);
 				entity = response.getEntity();
@@ -63,7 +64,7 @@ public class FetchPic {
 				int month = c.get(Calendar.MONTH) + 1;
 				long millis = c.getTimeInMillis();
 				String fileName = "/" + year + "/" + month + "/" + millis
-						+ ".jpg";
+						+ "."+picType;
 				File file = new File(path + "/" + fileName);
 				if (!file.getParentFile().exists()) {
 					file.getParentFile().mkdirs();
@@ -97,7 +98,7 @@ public class FetchPic {
 						.getInstance(AlphaComposite.SRC_OVER));
 				g.dispose();
 				fout = new FileOutputStream(file);
-				ImageIO.write(buffImg, "JPG", fout);
+				ImageIO.write(buffImg, picType, fout);
 				sum++;
 				jdbcTemplate
 						.update("update joke_article set pic = ?, status = ? where id = ?",
@@ -106,7 +107,7 @@ public class FetchPic {
 						.update("insert into joke_upload_pic(article_id, pic) values(?,?)",
 								id, fileName);
 			}catch(SocketTimeoutException ste){
-				log.error(url);
+				log.error("timeout:"+url);
 			}catch (Exception e) {
 				log.error(e, e);
 			} finally {
@@ -119,6 +120,7 @@ public class FetchPic {
 		}
 	}
 	public static void main(String[] args) {
-		System.out.println(ClassLoader.getSystemResourceAsStream("logo.png"));
+		String url = "http://i1.juyouqu.com/uploads/content//2013/01/1357282467422.gif";
+		System.out.println(url.substring(url.lastIndexOf(".")+1));
 	}
 }
