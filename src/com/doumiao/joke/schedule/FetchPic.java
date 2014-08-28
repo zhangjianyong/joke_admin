@@ -49,13 +49,13 @@ public class FetchPic {
 		HttpGet get = null;
 		HttpEntity entity = null;
 		FileOutputStream fout = null;
-		int sum=0;
+		int sum = 0;
 		for (Map<String, Object> article : articles) {
-			String url=null;
+			String url = null;
 			try {
 				int id = (Integer) article.get("id");
 				url = (String) article.get("pic_ori");
-				String picType = url.substring(url.lastIndexOf(".")+1);
+				String picType = url.substring(url.lastIndexOf(".") + 1);
 				get = new HttpGet(url);
 				HttpResponse response = client.execute(get);
 				entity = response.getEntity();
@@ -63,8 +63,8 @@ public class FetchPic {
 				int year = c.get(Calendar.YEAR);
 				int month = c.get(Calendar.MONTH) + 1;
 				long millis = c.getTimeInMillis();
-				String fileName = "/" + year + "/" + month + "/" + millis
-						+ "."+picType;
+				String fileName = "/" + year + "/" + month + "/" + millis + "."
+						+ picType;
 				File file = new File(path + "/" + fileName);
 				if (!file.getParentFile().exists()) {
 					file.getParentFile().mkdirs();
@@ -80,22 +80,21 @@ public class FetchPic {
 						RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 				g.drawImage(srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
 						0, 0, null);
-				Image img = ImageIO
-						.read(FetchPic.class.getResourceAsStream("logo.png"));
-				// ImageIcon imgIcon = new ImageIcon(
-				// "D:/data/workspace/pri/java/joke_admin/WebContent/logo.png");
-				// Image img = imgIcon.getImage();
-				int _w = img.getWidth(null);
-				int _h = img.getHeight(null);
-				g.setComposite(AlphaComposite.getInstance(
-						AlphaComposite.SRC_ATOP, 1f));
-				int __h = _h > (int) (0.2 * h) ? (int) (0.2 * h) : _h;
-				int __w = (int) ((double) __h / _h * _w);
-				g.drawImage(
-						img.getScaledInstance(__w, __h, Image.SCALE_SMOOTH), w
-								- __w - 10, h - __h - 10, null);
-				g.setComposite(AlphaComposite
-						.getInstance(AlphaComposite.SRC_OVER));
+				if (!"gif".equals(picType.toLowerCase())) {
+					Image img = ImageIO.read(FetchPic.class
+							.getResourceAsStream("logo.png"));
+					int _w = img.getWidth(null);
+					int _h = img.getHeight(null);
+					g.setComposite(AlphaComposite.getInstance(
+							AlphaComposite.SRC_ATOP, 1f));
+					int __h = _h > (int) (0.2 * h) ? (int) (0.2 * h) : _h;
+					int __w = (int) ((double) __h / _h * _w);
+					g.drawImage(
+							img.getScaledInstance(__w, __h, Image.SCALE_SMOOTH),
+							w - __w - 10, h - __h - 10, null);
+					g.setComposite(AlphaComposite
+							.getInstance(AlphaComposite.SRC_OVER));
+				}
 				g.dispose();
 				fout = new FileOutputStream(file);
 				ImageIO.write(buffImg, picType, fout);
@@ -106,21 +105,22 @@ public class FetchPic {
 				jdbcTemplate
 						.update("insert into joke_upload_pic(article_id, pic) values(?,?)",
 								id, fileName);
-			}catch(SocketTimeoutException ste){
-				log.error("timeout:"+url);
-			}catch (Exception e) {
+			} catch (SocketTimeoutException ste) {
+				log.error("timeout:" + url);
+			} catch (Exception e) {
 				log.error(url, e);
 			} finally {
 				EntityUtils.consumeQuietly(entity);
 				IOUtils.closeQuietly(fout);
 			}
 		}
-		if(log.isInfoEnabled()){
-			log.info("fetch pic:"+sum);
+		if (log.isInfoEnabled()) {
+			log.info("fetch pic:" + sum);
 		}
 	}
+
 	public static void main(String[] args) {
 		String url = "http://i1.juyouqu.com/uploads/content//2013/01/1357282467422.gif";
-		System.out.println(url.substring(url.lastIndexOf(".")+1));
+		System.out.println(url.substring(url.lastIndexOf(".") + 1));
 	}
 }
