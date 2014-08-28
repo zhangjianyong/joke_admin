@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +20,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -56,9 +55,6 @@ public class FetchPic {
 				int id = (Integer) article.get("id");
 				url = (String) article.get("pic_ori");
 				String picType = url.substring(url.lastIndexOf(".") + 1);
-				get = new HttpGet(url);
-				HttpResponse response = client.execute(get);
-				entity = response.getEntity();
 				Calendar c = Calendar.getInstance();
 				int year = c.get(Calendar.YEAR);
 				int month = c.get(Calendar.MONTH) + 1;
@@ -69,18 +65,24 @@ public class FetchPic {
 				if (!file.getParentFile().exists()) {
 					file.getParentFile().mkdirs();
 				}
-				Image srcImg = ImageIO.read(entity.getContent());
-				int w = srcImg.getWidth(null);
-				int h = srcImg.getHeight(null);
-				BufferedImage buffImg = new BufferedImage(
-						srcImg.getWidth(null), srcImg.getHeight(null),
-						BufferedImage.TYPE_INT_RGB);
-				Graphics2D g = buffImg.createGraphics();
-				g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-						RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-				g.drawImage(srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
-						0, 0, null);
-				if (!"gif".equals(picType.toLowerCase())) {
+				fout = new FileOutputStream(file);
+				if ("gif".equals(picType.toLowerCase())) {
+					get = new HttpGet(url);
+					entity = client.execute(get).getEntity();
+					IOUtils.copy(entity.getContent(), fout);
+				} else {
+					Image srcImg = ImageIO.read(new URL(url));
+					int w = srcImg.getWidth(null);
+					int h = srcImg.getHeight(null);
+					BufferedImage buffImg = new BufferedImage(
+							srcImg.getWidth(null), srcImg.getHeight(null),
+							BufferedImage.TYPE_INT_RGB);
+					Graphics2D g = buffImg.createGraphics();
+					g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+							RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+					g.drawImage(
+							srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
+							0, 0, null);
 					Image img = ImageIO.read(this.getClass()
 							.getResourceAsStream("logo.png"));
 					int _w = img.getWidth(null);
@@ -94,10 +96,9 @@ public class FetchPic {
 							w - __w - 10, h - __h - 10, null);
 					g.setComposite(AlphaComposite
 							.getInstance(AlphaComposite.SRC_OVER));
+					g.dispose();
+					ImageIO.write(buffImg, picType, fout);
 				}
-				g.dispose();
-				fout = new FileOutputStream(file);
-				ImageIO.write(buffImg, picType, fout);
 				sum++;
 				jdbcTemplate
 						.update("update joke_article set pic = ?, status = ? where id = ?",
@@ -110,7 +111,6 @@ public class FetchPic {
 			} catch (Exception e) {
 				log.error(url, e);
 			} finally {
-				EntityUtils.consumeQuietly(entity);
 				IOUtils.closeQuietly(fout);
 			}
 		}
