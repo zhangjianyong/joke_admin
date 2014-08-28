@@ -42,7 +42,7 @@ public class AshamedQiushibaike {
 	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = Config.getInt("fetch_pages_text_mahua",10);
+		int maxPage = Config.getInt("fetch_pages_qiushi_qiushibaike",10);
 		int count = maxPage;
 		String site = "qiushibaike.com";
 		Connection con = null;

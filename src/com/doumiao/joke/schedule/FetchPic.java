@@ -81,7 +81,7 @@ public class FetchPic {
 				g.drawImage(srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
 						0, 0, null);
 				if (!"gif".equals(picType.toLowerCase())) {
-					Image img = ImageIO.read(FetchPic.class
+					Image img = ImageIO.read(this.getClass()
 							.getResourceAsStream("logo.png"));
 					int _w = img.getWidth(null);
 					int _h = img.getHeight(null);
