@@ -109,7 +109,7 @@ public class FetchPic {
 			}catch(SocketTimeoutException ste){
 				log.error("timeout:"+url);
 			}catch (Exception e) {
-				log.error(e, e);
+				log.error(url, e);
 			} finally {
 				EntityUtils.consumeQuietly(entity);
 				IOUtils.closeQuietly(fout);
