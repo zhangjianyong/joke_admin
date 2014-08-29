@@ -19,7 +19,7 @@ public class FileBucketDemo {
 		upyun.setDebug(true);
 		long usage = upyun.getBucketUsage();
 		System.out.println("空间总使用量：" + usage/1024/1024 + "M");
-		listDir("", true);
+		listDir("", false);
 	}
 
 	public static void listDir(String path, boolean delete) {

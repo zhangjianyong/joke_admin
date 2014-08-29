@@ -31,7 +31,7 @@ public class UploadPic {
 		upyun.setTimeout(60);
 		upyun.setDebug(true);
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, article_id, pic from joke_upload_pic order by id limit 0,100");
+				.queryForList("select id, article_id, pic from joke_upload_pic order by id desc limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
