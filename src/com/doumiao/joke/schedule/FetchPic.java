@@ -16,7 +16,9 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 
+import org.apache.catalina.tribes.util.Arrays;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -37,8 +39,9 @@ public class FetchPic {
 
 	@Scheduled(fixedDelay = 60000)
 	public void fetch() {
+		String[] types = {"gif","png","jpg","jpeg","bmp"};
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 order by id limit 0,100");
+				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 order by id desc limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
@@ -55,6 +58,9 @@ public class FetchPic {
 				int id = (Integer) article.get("id");
 				url = (String) article.get("pic_ori");
 				String picType = url.substring(url.lastIndexOf(".") + 1);
+				if(ArrayUtils.indexOf(types, picType)==-1){
+					picType="jpg";
+				}
 				Calendar c = Calendar.getInstance();
 				int year = c.get(Calendar.YEAR);
 				int month = c.get(Calendar.MONTH) + 1;
