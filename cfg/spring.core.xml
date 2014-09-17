@@ -47,8 +47,5 @@
 		<property name="jndiName" value="java:comp/env/jdbc/joke" />
 	</bean>
 	<bean id="objectMapper" class="org.codehaus.jackson.map.ObjectMapper" />
-	<!-- see com.abc.task.schedule.fetchdata.DefaultFetchDataSchedule.class -->
-	<bean id="fetchDataQueue" class="java.util.concurrent.LinkedBlockingQueue">
-		<constructor-arg index="0" value="1000" />
-	</bean>
+
 </beans>

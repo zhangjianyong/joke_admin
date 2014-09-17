@@ -3,7 +3,6 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -47,7 +46,7 @@ public class PicJuyouqu {
 		try {
 			con = dataSource.getConnection();
 			stmt_insert = con
-					.prepareStatement("insert into joke_article(title, pic_ori, type, fetch_site, fetch_site_pid, `status`, member_id, member_nick ) values(?,?,?,?,?,0,?,?)");
+					.prepareStatement("insert into joke_article(title, pic_ori, type, fetch_site, fetch_site_pid, `status`, member_id ) values(?,?,?,?,?,0,?)");
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
@@ -89,7 +88,6 @@ public class PicJuyouqu {
 						}
 						sum++;
 						int col = 0;
-						Map<String, Object> me = randFetchMember.next();
 						stmt_insert.setString(++col, title);
 						if (content.endsWith(".gifstatic")) {
 							stmt_insert.setString(++col,
@@ -104,13 +102,13 @@ public class PicJuyouqu {
 						stmt_insert.setString(++col, ArticleType.PIC.name());
 						stmt_insert.setString(++col, site);
 						stmt_insert.setString(++col, id);
-						stmt_insert.setInt(++col, (Integer) me.get("id"));
-						stmt_insert.setString(++col, (String) me.get("nick"));
+						stmt_insert.setInt(++col, randFetchMember.next());
 						stmt_insert.addBatch();
 					}
 					stmt_insert.executeBatch();
 					con.commit();
 				} catch (Exception e) {
+					log.error(e,e);
 					log.error(url);
 				}
 			}

@@ -3,7 +3,6 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,7 +47,7 @@ public class TextXiaohuaZol {
 		try {
 			con = dataSource.getConnection();
 			stmt_insert = con
-					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id, member_nick) values(?,?,?,?,?,?,?)");
+					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id) values(?,?,?,?,?,?)");
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
@@ -89,16 +88,13 @@ public class TextXiaohuaZol {
 
 							String text = content.text();
 							int col = 0;
-							Map<String, Object> me = randFetchMember.next();
 							stmt_insert.setString(++col, title);
 							stmt_insert.setString(++col, text);
 							stmt_insert.setString(++col,
 									ArticleType.TEXT.name());
 							stmt_insert.setString(++col, site);
 							stmt_insert.setString(++col, id);
-							stmt_insert.setInt(++col, (Integer) me.get("id"));
-							stmt_insert.setString(++col,
-									(String) me.get("nick"));
+							stmt_insert.setInt(++col, randFetchMember.next());
 							stmt_insert.addBatch();
 						}
 					}

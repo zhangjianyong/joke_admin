@@ -1,10 +1,5 @@
 package com.doumiao.joke.schedule;
 
-import java.awt.AlphaComposite;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.SocketTimeoutException;
@@ -16,9 +11,12 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 
-import org.apache.catalina.tribes.util.Arrays;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.geometry.Positions;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -37,11 +35,11 @@ public class FetchPic {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 3000)
 	public void fetch() {
-		String[] types = {"gif","png","jpg","jpeg","bmp"};
+		String[] types = { "gif", "png", "jpg", "jpeg", "bmp" };
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, pic_ori from joke_article where type = 'PIC' and `status` = 0 order by id desc limit 0,100");
+				.queryForList("select id, pic_ori,pic,fetch_site from joke_article where type = 'PIC' and `status` = 0 order by id desc limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
@@ -54,56 +52,46 @@ public class FetchPic {
 		int sum = 0;
 		for (Map<String, Object> article : articles) {
 			String url = null;
+			String fileName = null;
 			try {
 				int id = (Integer) article.get("id");
-				url = (String) article.get("pic_ori");
-				String picType = url.substring(url.lastIndexOf(".") + 1);
-				if(ArrayUtils.indexOf(types, picType)==-1){
-					picType="jpg";
-				}
-				Calendar c = Calendar.getInstance();
-				int year = c.get(Calendar.YEAR);
-				int month = c.get(Calendar.MONTH) + 1;
-				long millis = c.getTimeInMillis();
-				String fileName = "/" + year + "/" + month + "/" + millis + "."
-						+ picType;
-				File file = new File(path + "/" + fileName);
-				if (!file.getParentFile().exists()) {
-					file.getParentFile().mkdirs();
-				}
-				fout = new FileOutputStream(file);
-				if ("gif".equals(picType.toLowerCase())) {
-					get = new HttpGet(url);
-					entity = client.execute(get).getEntity();
-					IOUtils.copy(entity.getContent(), fout);
-				} else {
-					Image srcImg = ImageIO.read(new URL(url));
-					int w = srcImg.getWidth(null);
-					int h = srcImg.getHeight(null);
-					BufferedImage buffImg = new BufferedImage(
-							srcImg.getWidth(null), srcImg.getHeight(null),
-							BufferedImage.TYPE_INT_RGB);
-					Graphics2D g = buffImg.createGraphics();
-					g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-							RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-					g.drawImage(
-							srcImg.getScaledInstance(w, h, Image.SCALE_SMOOTH),
-							0, 0, null);
-					Image img = ImageIO.read(this.getClass()
-							.getResourceAsStream("logo.png"));
-					int _w = img.getWidth(null);
-					int _h = img.getHeight(null);
-					g.setComposite(AlphaComposite.getInstance(
-							AlphaComposite.SRC_ATOP, 1f));
-					int __h = _h > (int) (0.2 * h) ? (int) (0.2 * h) : _h;
-					int __w = (int) ((double) __h / _h * _w);
-					g.drawImage(
-							img.getScaledInstance(__w, __h, Image.SCALE_SMOOTH),
-							w - __w - 10, h - __h - 10, null);
-					g.setComposite(AlphaComposite
-							.getInstance(AlphaComposite.SRC_OVER));
-					g.dispose();
-					ImageIO.write(buffImg, picType, fout);
+				Object picOri = article.get("pic_ori");
+				Object pic = article.get("pic");
+				if (picOri != null) {
+					url = (String) picOri;
+					String picType = url.substring(url.lastIndexOf(".") + 1);
+					if (ArrayUtils.indexOf(types, picType) == -1) {
+						picType = "jpg";
+					}
+					Calendar c = Calendar.getInstance();
+					int year = c.get(Calendar.YEAR);
+					int month = c.get(Calendar.MONTH) + 1;
+					long millis = c.getTimeInMillis();
+					fileName = "/" + year + "/" + month + "/" + millis + "."
+							+ picType;
+					File file = new File(path + "/" + fileName);
+					if (!file.getParentFile().exists()) {
+						file.getParentFile().mkdirs();
+					}
+					fout = new FileOutputStream(file);
+					if (StringUtils.isNotBlank(url)) {
+						if ("gif".equals(picType.toLowerCase())) {
+							get = new HttpGet(url);
+							entity = client.execute(get).getEntity();
+							IOUtils.copy(entity.getContent(), fout);
+						} else {
+							Thumbnails
+									.of(new URL(url))
+									.watermark(
+											Positions.BOTTOM_RIGHT,
+											ImageIO.read(this.getClass()
+													.getResourceAsStream(
+															"logo.png")), 1f)
+									.outputQuality(1).scale(1).toFile(file);
+						}
+					}
+				} else if (pic != null && article.get("fetch_site")==null) {
+					fileName = (String) pic;
 				}
 				sum++;
 				jdbcTemplate

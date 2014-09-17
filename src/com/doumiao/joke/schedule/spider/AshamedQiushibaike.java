@@ -52,7 +52,7 @@ public class AshamedQiushibaike {
 		try {
 			con = dataSource.getConnection();
 			stmt_insert = con
-					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id, member_nick ) values(?,?,?,?,?,?,?)");
+					.prepareStatement("insert into joke_article(title, content, type, fetch_site, fetch_site_pid, member_id ) values(?,?,?,?,?,?)");
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
@@ -92,15 +92,13 @@ public class AshamedQiushibaike {
 						}
 						sum++;
 						int col = 0;
-						Map<String, Object> me = randFetchMember.next();
 						stmt_insert.setString(++col, null);
 						stmt_insert.setString(++col, content);
 						stmt_insert
 								.setString(++col, ArticleType.ASHAMED.name());
 						stmt_insert.setString(++col, site);
 						stmt_insert.setString(++col, id);
-						stmt_insert.setInt(++col, (Integer) me.get("id"));
-						stmt_insert.setString(++col, (String) me.get("nick"));
+						stmt_insert.setInt(++col, randFetchMember.next());
 						stmt_insert.addBatch();
 					}
 					stmt_insert.executeBatch();

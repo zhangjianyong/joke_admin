@@ -1,7 +1,6 @@
 package com.doumiao.joke.schedule;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -15,15 +14,15 @@ public class RandFetchMember {
 	private JdbcTemplate jdbcTemplate;
 
 	@SuppressWarnings("unchecked")
-	private static List<Map<String, Object>> members = ListUtils.EMPTY_LIST;
+	private static List<Integer> members = ListUtils.EMPTY_LIST;
 	private long count = 10000;
 
-	public Map<String,Object> next() {
+	public int next() {
 		if (members == null || members.isEmpty()) {
 			synchronized (members) {
 				if (members == null || members.isEmpty()) {
 					members = jdbcTemplate.queryForList(
-							"select id, nick from uc_member limit ?", count);
+							"select id from uc_member limit ?", Integer.class,count);
 				}
 			}
 		}
