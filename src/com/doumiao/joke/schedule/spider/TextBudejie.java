@@ -34,7 +34,7 @@ public class TextBudejie {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	//@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_text_budejie", 10);
