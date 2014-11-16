@@ -39,30 +39,10 @@ public class Picmahua {
 	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
-		int maxPage = 0;
+		int maxPage = 10;
 		int count = Config.getInt("fetch_pages_pic_mahua", 10);
 		String site = "mahua.com";
-		try {
-			String url = "http://www.mahua.com/newjokes/pic/";
-			if (log.isDebugEnabled()) {
-				log.debug("fetching " + url);
-			}
-			Document listDoc = Jsoup.connect(url).get();
-			Elements es = listDoc.select("a[title=第2页]");
-			for (int i = 0; i < es.size(); i++) {
-				Element e = es.get(i);
-				String uri = e.attr("href");
-				Pattern p = Pattern.compile("index_(\\d*).htm");
-				Matcher m = p.matcher(uri);
-				if (m.find()) {
-					maxPage = Integer.parseInt(m.group(1));
-				}
-			}
-		} catch (ClientProtocolException e) {
-			log.error(e, e);
-		} catch (IOException e) {
-			log.error(e);
-		}
+		
 		Connection con = null;
 		PreparedStatement stmt_insert = null;
 		PreparedStatement stmt_select = null;

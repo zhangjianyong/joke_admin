@@ -35,7 +35,7 @@ public class FetchPic {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	@Scheduled(fixedDelay = 3000)
+	@Scheduled(fixedDelay = 180000)
 	public void fetch() {
 		String[] types = { "gif", "png", "jpg", "jpeg", "bmp" };
 		List<Map<String, Object>> articles = jdbcTemplate
