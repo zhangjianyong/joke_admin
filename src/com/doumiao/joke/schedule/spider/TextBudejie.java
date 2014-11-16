@@ -50,7 +50,7 @@ public class TextBudejie {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
-			int sum = 0;
+			int fetch = 0, insert = 0, error = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				String url = "http://www.budejie.com/new-d/" + page;
 				if (log.isDebugEnabled()) {
@@ -62,6 +62,9 @@ public class TextBudejie {
 					for (int i = 0; i < es.size(); i++) {
 						Element e = es.get(i);
 						String id = e.attr("id");
+						Element content = e.select("p.main-content1").first();
+						String text = content.text();
+						fetch++;
 						stmt_select.setString(1, site);
 						stmt_select.setString(2, id);
 						stmt_select.setString(3, ArticleType.TEXT.name());
@@ -70,10 +73,7 @@ public class TextBudejie {
 						if (rs.getInt("c") > 0) {
 							continue;
 						}
-						sum++;
-						Element content = e.select("p.main-content1").first();
-
-						String text = content.text();
+						insert++;
 						int col = 0;
 						stmt_insert.setString(++col, text);
 						stmt_insert.setString(++col, ArticleType.TEXT.name());
@@ -85,15 +85,18 @@ public class TextBudejie {
 					stmt_insert.executeBatch();
 					con.commit();
 				} catch (SocketTimeoutException ste) {
+					error++;
 					log.error(url);
 					log.error(ste.getMessage());
 				} catch (Exception e) {
+					error++;
 					log.error(url);
 					log.error(e, e);
 				}
 			}
 			if (log.isInfoEnabled()) {
-				log.info("fetch new article:" + sum);
+				log.info("fetch:" + fetch + " insert:" + insert + " error:"
+						+ error);
 			}
 		} catch (Exception e) {
 			log.error(e, e);

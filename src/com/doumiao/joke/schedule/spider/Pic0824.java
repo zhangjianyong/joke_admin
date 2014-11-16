@@ -51,7 +51,7 @@ public class Pic0824 {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
-			int sum = 0;
+			int fetch = 0, insert = 0, error = 0;
 			String[] cats = new String[] { "neihan", "qiushi", "egao" };
 			for (String cat : cats) {
 				for (int page = maxPage; page > maxPage - count; page--) {
@@ -74,6 +74,7 @@ public class Pic0824 {
 							String id = titleE.attr("href")
 									.replace("http://www.0824.com/neihan/", "")
 									.replace(".html", "");
+							fetch++;
 							stmt_select.setString(1, site);
 							stmt_select.setString(2, id);
 							stmt_select.setString(3, ArticleType.PIC.name());
@@ -82,7 +83,7 @@ public class Pic0824 {
 							if (rs.getInt("c") > 0) {
 								continue;
 							}
-							sum++;
+							insert++;
 							int col = 0;
 							stmt_insert.setString(++col, title);
 							stmt_insert.setString(++col, content);
@@ -96,17 +97,20 @@ public class Pic0824 {
 						}
 						stmt_insert.executeBatch();
 						con.commit();
-					}  catch (SocketTimeoutException ste) {
+					} catch (SocketTimeoutException ste) {
+						error++;
 						log.error(url);
 						log.error(ste.getMessage());
 					} catch (Exception e) {
+						error++;
 						log.error(url);
 						log.error(e, e);
 					}
 				}
 			}
 			if (log.isInfoEnabled()) {
-				log.info("fetch new article:" + sum);
+				log.info("fetch:" + fetch + " insert:" + insert + " error:"
+						+ error);
 			}
 		} catch (Exception e) {
 			log.error(e, e);

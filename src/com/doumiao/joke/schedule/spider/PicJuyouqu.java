@@ -51,20 +51,14 @@ public class PicJuyouqu {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
-			int sum = 0;
+			int fetch = 0, insert = 0, error = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				url = "http://www.juyouqu.com/page/" + page;
 				if (log.isDebugEnabled()) {
 					log.debug("fetching " + url);
 				}
-				// HttpClient client = HttpClientHelper.getClient();
-				// HttpGet get = new HttpGet(url);
-				// HttpResponse response = client.execute(get);
-				// HttpEntity entity = response.getEntity();
 				try {
 					Document listDoc = Jsoup.connect(url).get();
-					// Document listDoc =
-					// Jsoup.parse(EntityUtils.toString(entity));
 					Elements es = listDoc.select("div.article.page1");
 					for (int i = 0; i < es.size(); i++) {
 						Element e = es.get(i);
@@ -79,6 +73,9 @@ public class PicJuyouqu {
 						String title = titleE.text();
 						String content = imgE.attr("src");
 						String id = titleE.attr("href").replace("/qu/", "");
+						
+						fetch++;
+						
 						stmt_select.setString(1, site);
 						stmt_select.setString(2, id);
 						stmt_select.setString(3, ArticleType.PIC.name());
@@ -87,7 +84,7 @@ public class PicJuyouqu {
 						if (rs.getInt("c") > 0) {
 							continue;
 						}
-						sum++;
+						insert++;
 						int col = 0;
 						stmt_insert.setString(++col, title);
 						if (content.endsWith(".gifstatic")) {
@@ -109,15 +106,18 @@ public class PicJuyouqu {
 					stmt_insert.executeBatch();
 					con.commit();
 				} catch (SocketTimeoutException ste) {
+					error++;
 					log.error(url);
 					log.error(ste.getMessage());
 				} catch (Exception e) {
+					error++;
 					log.error(url);
 					log.error(e, e);
 				}
 			}
 			if (log.isInfoEnabled()) {
-				log.info("fetch new article:" + sum);
+				log.info("fetch:" + fetch + " insert:" + insert + " error:"
+						+ error);
 			}
 		} catch (Exception e) {
 			log.error(e, e);

@@ -37,12 +37,13 @@ public class Picmahua {
 	@Resource
 	private RandFetchMember randFetchMember;
 
+	private String site = "mahua.com";
+
 	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
 		int maxPage = 10;
 		int count = Config.getInt("fetch_pages_pic_mahua", 10);
-		String site = "mahua.com";
 
 		Connection con = null;
 		PreparedStatement stmt_insert = null;
@@ -56,7 +57,7 @@ public class Picmahua {
 			stmt_select = con
 					.prepareStatement("select count(1) c from joke_article where fetch_site = ? and fetch_site_pid = ? and type = ? ");
 			con.setAutoCommit(false);
-			int sum = 0;
+			int fetch = 0, insert = 0, error = 0;
 			for (int page = maxPage; page > maxPage - count; page--) {
 				url = "http://www.mahua.com/newjokes/pic/index_" + page
 						+ ".htm";
@@ -64,49 +65,43 @@ public class Picmahua {
 					log.debug("fetching " + url);
 				}
 				try {
-					Document listDoc = Jsoup.connect(url).get();
-					Elements es = listDoc.select("div.mahua");
-					for (int i = 0; i < es.size(); i++) {
-						Element e = es.get(i);
-						String id = e.attr("id").replace("j_", "");
-						Element titleE = e.select("h3 a").first();
-						Element imgE = e.select("div.content p img").first();
-						if (imgE == null) {
-							continue;
-						}
-						String title = titleE.text();
-						String content = imgE.attr("src");
+					List<Article> articles = fetch(url);
+					fetch += articles.size();
+					for (Article a : articles) {
 						stmt_select.setString(1, site);
-						stmt_select.setString(2, id);
+						stmt_select.setString(2, a.getFetchSitePid());
 						stmt_select.setString(3, ArticleType.PIC.name());
 						rs = stmt_select.executeQuery();
 						rs.next();
 						if (rs.getInt("c") > 0) {
 							continue;
 						}
-						sum++;
+						insert++;
 						int col = 0;
-						stmt_insert.setString(++col, title);
-						stmt_insert.setString(++col, content);
+						stmt_insert.setString(++col, a.getTitle());
+						stmt_insert.setString(++col, a.getPicOri());
 
 						stmt_insert.setString(++col, ArticleType.PIC.name());
 						stmt_insert.setString(++col, site);
-						stmt_insert.setString(++col, id);
+						stmt_insert.setString(++col, a.getFetchSitePid());
 						stmt_insert.setInt(++col, randFetchMember.next());
 						stmt_insert.addBatch();
 					}
 					stmt_insert.executeBatch();
 					con.commit();
 				} catch (SocketTimeoutException ste) {
+					error++;
 					log.error(url);
 					log.error(ste.getMessage());
 				} catch (Exception e) {
+					error++;
 					log.error(url);
 					log.error(e, e);
 				}
 			}
 			if (log.isInfoEnabled()) {
-				log.info("fetch new article:" + sum);
+				log.info("fetch:" + fetch + " insert:" + insert + " error:"
+						+ error);
 			}
 		} catch (Exception e) {
 			log.error(e, e);
@@ -119,12 +114,12 @@ public class Picmahua {
 	}
 
 	@Test
-	private List<Article> fetch(String url) {
+	private List<Article> fetch(String url) throws Exception {
 		Document listDoc;
 		try {
 			listDoc = Jsoup.connect(url).get();
 		} catch (IOException e) {
-			log.error(e,e);
+			log.error(e, e);
 			return null;
 		}
 		Elements es = listDoc.select("div.mahua");
@@ -139,7 +134,10 @@ public class Picmahua {
 				continue;
 			}
 			String title = titleE.text();
-			String content = imgE.attr("src");
+			String picOri = imgE.attr("src");
+			a.setFetchSitePid(id);
+			a.setTitle(title);
+			a.setPicOri(picOri);
 			l.add(a);
 		}
 		return l;
