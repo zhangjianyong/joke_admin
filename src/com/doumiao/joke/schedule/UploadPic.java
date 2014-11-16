@@ -70,6 +70,9 @@ public class UploadPic {
 				HttpGet get = new HttpGet(picDomain+"/article/0"+pic);
 				HttpResponse response = client.execute(get);
 				if (result & r &response.getStatusLine().getStatusCode()==200) {
+					if(log.isDebugEnabled()){
+						log.debug(get.getURI());
+					}
 					jdbcTemplate.update(
 							"update joke_article set `status` = ? where id = ?",
 							2, articleId);
