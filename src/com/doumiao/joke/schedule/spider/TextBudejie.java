@@ -3,8 +3,6 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -34,7 +32,7 @@ public class TextBudejie {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	//@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_text_budejie", 10);
