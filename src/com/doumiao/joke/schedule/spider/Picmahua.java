@@ -11,6 +11,7 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
@@ -61,12 +62,11 @@ public class Picmahua {
 			for (int page = maxPage; page > maxPage - count; page--) {
 				url = "http://www.mahua.com/newjokes/pic/index_" + page
 						+ ".htm";
-				if (log.isDebugEnabled()) {
-					log.debug("fetching " + url);
-				}
 				try {
 					List<Article> articles = fetch(url);
-					fetch += articles.size();
+					if(log.isDebugEnabled()){
+						log.debug(url+":"+articles.size());
+					}
 					for (Article a : articles) {
 						stmt_select.setString(1, site);
 						stmt_select.setString(2, a.getFetchSitePid());
@@ -113,6 +113,7 @@ public class Picmahua {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	private List<Article> fetch(String url) throws Exception {
 		Document listDoc;
@@ -120,7 +121,7 @@ public class Picmahua {
 			listDoc = Jsoup.connect(url).get();
 		} catch (IOException e) {
 			log.error(e, e);
-			return null;
+			return ListUtils.EMPTY_LIST;
 		}
 		Elements es = listDoc.select("div.mahua");
 		List<Article> l = new ArrayList<Article>(es.size());

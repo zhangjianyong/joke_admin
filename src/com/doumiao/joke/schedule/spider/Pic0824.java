@@ -1,13 +1,17 @@
 package com.doumiao.joke.schedule.spider;
 
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
@@ -20,6 +24,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
+import com.doumiao.joke.lang.Article;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
@@ -56,27 +61,14 @@ public class Pic0824 {
 			for (String cat : cats) {
 				for (int page = maxPage; page > maxPage - count; page--) {
 					url = "http://www.0824.com/" + cat + "_" + page + "/";
-					if (log.isDebugEnabled()) {
-						log.debug("fetching " + url);
-					}
 					try {
-						Document listDoc = Jsoup.connect(url).get();
-						Elements es = listDoc.select("div.rt");
-						for (int i = 0; i < es.size(); i++) {
-							Element e = es.get(i);
-							Element titleE = e.select("div.titl a").first();
-							Element imgE = e.select("div.desc a img").first();
-							if (imgE == null) {
-								continue;
-							}
-							String title = titleE.text();
-							String content = imgE.attr("src");
-							String id = titleE.attr("href")
-									.replace("http://www.0824.com/neihan/", "")
-									.replace(".html", "");
-							fetch++;
+						List<Article> articles = fetch(url);
+						if(log.isDebugEnabled()){
+							log.debug(url+":"+articles.size());
+						}
+						for (Article a : articles) {
 							stmt_select.setString(1, site);
-							stmt_select.setString(2, id);
+							stmt_select.setString(2, a.getFetchSitePid());
 							stmt_select.setString(3, ArticleType.PIC.name());
 							rs = stmt_select.executeQuery();
 							rs.next();
@@ -85,13 +77,12 @@ public class Pic0824 {
 							}
 							insert++;
 							int col = 0;
-							stmt_insert.setString(++col, title);
-							stmt_insert.setString(++col, content);
+							stmt_insert.setString(++col, a.getTitle());
+							stmt_insert.setString(++col, a.getPicOri());
 
-							stmt_insert
-									.setString(++col, ArticleType.PIC.name());
+							stmt_insert.setString(++col, ArticleType.PIC.name());
 							stmt_insert.setString(++col, site);
-							stmt_insert.setString(++col, id);
+							stmt_insert.setString(++col, a.getFetchSitePid());
 							stmt_insert.setInt(++col, randFetchMember.next());
 							stmt_insert.addBatch();
 						}
@@ -120,6 +111,39 @@ public class Pic0824 {
 			JdbcUtils.closeStatement(stmt_insert);
 			JdbcUtils.closeStatement(stmt_select);
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	private List<Article> fetch(String url) throws Exception {
+		Document listDoc;
+		try {
+			listDoc = Jsoup.connect(url).get();
+		} catch (IOException e) {
+			log.error(e, e);
+			return ListUtils.EMPTY_LIST;
+		}
+		Elements es = listDoc.select("div.rt");
+		List<Article> l = new ArrayList<Article>(es.size());
+		for (int i = 0; i < es.size(); i++) {
+			Article a = new Article();
+			Element e = es.get(i);
+			Element titleE = e.select("div.titl a").first();
+			Element imgE = e.select("div.desc a img").first();
+			if (imgE == null) {
+				continue;
+			}
+			String title = titleE.text();
+			String picOri = imgE.attr("src");
+			String id = titleE.attr("href")
+					.replace("http://www.0824.com/neihan/", "")
+					.replace(".html", "");
+			a.setFetchSitePid(id);
+			a.setTitle(title);
+			a.setPicOri(picOri);
+			l.add(a);
+		}
+		return l;
 	}
 
 }
