@@ -1,5 +1,6 @@
 package com.doumiao.joke.schedule.spider;
 
+import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,7 +40,7 @@ public class AshamedQiushibaike {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_qiushi_qiushibaike",10);
@@ -103,8 +104,12 @@ public class AshamedQiushibaike {
 					}
 					stmt_insert.executeBatch();
 					con.commit();
+				} catch (SocketTimeoutException ste) {
+					log.error(url);
+					log.error(ste.getMessage());
 				} catch (Exception e) {
 					log.error(url);
+					log.error(e, e);
 				}
 			}
 			if(log.isInfoEnabled()){

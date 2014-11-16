@@ -1,5 +1,6 @@
 package com.doumiao.joke.schedule.spider;
 
+import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,7 +33,7 @@ public class PicJuyouqu {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_pic_juyouqu", 10);
@@ -107,9 +108,12 @@ public class PicJuyouqu {
 					}
 					stmt_insert.executeBatch();
 					con.commit();
-				} catch (Exception e) {
-					log.error(e,e);
+				} catch (SocketTimeoutException ste) {
 					log.error(url);
+					log.error(ste.getMessage());
+				} catch (Exception e) {
+					log.error(url);
+					log.error(e, e);
 				}
 			}
 			if (log.isInfoEnabled()) {

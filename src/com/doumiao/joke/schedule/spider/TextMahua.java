@@ -34,7 +34,7 @@ public class TextMahua {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
 		int maxPage = 10;

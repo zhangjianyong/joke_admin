@@ -1,5 +1,6 @@
 package com.doumiao.joke.schedule.spider;
 
+import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,7 +33,7 @@ public class TextBudejie {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 180000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_text_budejie", 10);
@@ -70,8 +71,7 @@ public class TextBudejie {
 							continue;
 						}
 						sum++;
-						Element content = e.select("p.main-content1")
-								.first();
+						Element content = e.select("p.main-content1").first();
 
 						String text = content.text();
 						int col = 0;
@@ -84,8 +84,12 @@ public class TextBudejie {
 					}
 					stmt_insert.executeBatch();
 					con.commit();
+				} catch (SocketTimeoutException ste) {
+					log.error(url);
+					log.error(ste.getMessage());
 				} catch (Exception e) {
 					log.error(url);
+					log.error(e, e);
 				}
 			}
 			if (log.isInfoEnabled()) {

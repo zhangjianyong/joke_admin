@@ -49,7 +49,7 @@ public class FetchPic {
 		HttpGet get = null;
 		HttpEntity entity = null;
 		FileOutputStream fout = null;
-		int sum = 0;
+		int sum = 0,error = 0;;
 		for (Map<String, Object> article : articles) {
 			String url = null;
 			String fileName = null;
@@ -101,15 +101,17 @@ public class FetchPic {
 						.update("insert into joke_upload_pic(article_id, pic) values(?,?)",
 								id, fileName);
 			} catch (SocketTimeoutException ste) {
+				error++;
 				log.error("timeout:" + url);
 			} catch (Exception e) {
+				error++;
 				log.error(url, e);
 			} finally {
 				IOUtils.closeQuietly(fout);
 			}
 		}
 		if (log.isInfoEnabled()) {
-			log.info("fetch pic:" + sum);
+			log.info("fetch pic:" + sum+" error:"+error);
 		}
 	}
 
