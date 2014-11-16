@@ -4,15 +4,14 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.ClientProtocolException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -23,6 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
+import com.doumiao.joke.lang.Article;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
@@ -42,7 +42,7 @@ public class Picmahua {
 		int maxPage = 10;
 		int count = Config.getInt("fetch_pages_pic_mahua", 10);
 		String site = "mahua.com";
-		
+
 		Connection con = null;
 		PreparedStatement stmt_insert = null;
 		PreparedStatement stmt_select = null;
@@ -112,5 +112,32 @@ public class Picmahua {
 			JdbcUtils.closeStatement(stmt_insert);
 			JdbcUtils.closeStatement(stmt_select);
 		}
+	}
+
+	@Test
+	private List<Article> fetch(String url) {
+		Document listDoc;
+		try {
+			listDoc = Jsoup.connect(url).get();
+		} catch (IOException e) {
+			log.error(e,e);
+			return null;
+		}
+		Elements es = listDoc.select("div.mahua");
+		List<Article> l = new ArrayList<Article>(es.size());
+		for (int i = 0; i < es.size(); i++) {
+			Article a = new Article();
+			Element e = es.get(i);
+			String id = e.attr("id").replace("j_", "");
+			Element titleE = e.select("h3 a").first();
+			Element imgE = e.select("div.content p img").first();
+			if (imgE == null) {
+				continue;
+			}
+			String title = titleE.text();
+			String content = imgE.attr("src");
+			l.add(a);
+		}
+		return l;
 	}
 }

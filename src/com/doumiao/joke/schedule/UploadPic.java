@@ -15,7 +15,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.doumiao.joke.lang.UpYunHelper;
 import com.doumiao.joke.schedule.UpYun.PARAMS;
 
 @Component
@@ -26,10 +25,13 @@ public class UploadPic {
 	private JdbcTemplate jdbcTemplate;
 
 	@Test
-	@Scheduled(fixedDelay = 180000)
+	@Scheduled(fixedDelay = 60000)
 	public void upload() {
 
-		UpYun yun = UpYunHelper.getClient();
+		UpYun upyun = new UpYun("yixiaoqianjin", "zhangjianyong", "Danawa1234");
+		upyun.setApiDomain(UpYun.ED_AUTO);
+		upyun.setTimeout(60);
+		upyun.setDebug(true);
 		List<Map<String, Object>> articles = jdbcTemplate
 				.queryForList("select id, article_id, pic from joke_upload_pic order by id desc limit 0,100");
 
@@ -47,8 +49,8 @@ public class UploadPic {
 
 				File picFile = new File(path + "/" + pic);
 
-				yun.setContentMD5(UpYun.md5(picFile));
-				boolean result = yun.writeFile("article/0"+pic, picFile, true);
+				upyun.setContentMD5(UpYun.md5(picFile));
+				boolean result = upyun.writeFile("article/0"+pic, picFile, true);
 
 				// 压缩图
 				Map<String, String> params = new HashMap<String, String>();
@@ -57,7 +59,7 @@ public class UploadPic {
 				params.put(PARAMS.KEY_X_GMKERL_VALUE.getValue(), "90x90");
 				params.put(PARAMS.KEY_X_GMKERL_QUALITY.getValue(), "95");
 				params.put(PARAMS.KEY_X_GMKERL_UNSHARP.getValue(), "true");
-				boolean r = yun.writeFile("/article/90"+pic, picFile, true, params);
+				boolean r = upyun.writeFile("/article/90"+pic, picFile, true, params);
 				sum++;
 				if (result & r) {
 					jdbcTemplate.update(
