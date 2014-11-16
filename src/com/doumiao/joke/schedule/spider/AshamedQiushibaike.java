@@ -4,7 +4,6 @@ import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
