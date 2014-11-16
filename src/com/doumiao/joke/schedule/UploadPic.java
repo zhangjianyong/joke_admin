@@ -10,11 +10,15 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.doumiao.joke.lang.HttpClientHelper;
 import com.doumiao.joke.schedule.UpYun.PARAMS;
 
 @Component
@@ -61,7 +65,11 @@ public class UploadPic {
 				params.put(PARAMS.KEY_X_GMKERL_UNSHARP.getValue(), "true");
 				boolean r = upyun.writeFile("/article/90"+pic, picFile, true, params);
 				sum++;
-				if (result & r) {
+				HttpClient client = HttpClientHelper.getClient();
+				String picDomain = Config.get("pic_domain");
+				HttpGet get = new HttpGet(picDomain+"/article/0"+pic);
+				HttpResponse response = client.execute(get);
+				if (result & r &response.getStatusLine().getStatusCode()==200) {
 					jdbcTemplate.update(
 							"update joke_article set `status` = ? where id = ?",
 							2, articleId);
