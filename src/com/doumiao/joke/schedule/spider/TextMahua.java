@@ -1,5 +1,6 @@
 package com.doumiao.joke.schedule.spider;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +12,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.ClientProtocolException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -18,13 +20,13 @@ import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
-@Service
+@Component
 public class TextMahua {
 	private static final Log log = LogFactory.getLog(TextMahua.class);
 
@@ -34,7 +36,7 @@ public class TextMahua {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	//@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = 10;

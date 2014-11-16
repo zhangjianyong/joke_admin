@@ -18,13 +18,13 @@ import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
-@Service
+@Component
 public class TextXiaohuaZol {
 	private static final Log log = LogFactory.getLog(TextXiaohuaZol.class);
 
@@ -34,7 +34,7 @@ public class TextXiaohuaZol {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	//@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_text_xiaohua",10);

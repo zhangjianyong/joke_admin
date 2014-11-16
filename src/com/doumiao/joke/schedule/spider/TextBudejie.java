@@ -3,6 +3,8 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -16,13 +18,13 @@ import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
-@Service
+@Component
 public class TextBudejie {
 	private static final Log log = LogFactory.getLog(TextBudejie.class);
 
@@ -32,7 +34,7 @@ public class TextBudejie {
 	@Resource
 	private RandFetchMember randFetchMember;
 
-	@Scheduled(fixedDelay = 60000)
+	//@Scheduled(fixedDelay = 60000)
 	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_text_budejie", 10);
