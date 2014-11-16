@@ -16,13 +16,13 @@ import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
-@Component
+@Service
 public class PicJuyouqu {
 	private static final Log log = LogFactory.getLog(PicJuyouqu.class);
 

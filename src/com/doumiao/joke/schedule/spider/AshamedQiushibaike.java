@@ -3,7 +3,6 @@ package com.doumiao.joke.schedule.spider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -22,14 +21,14 @@ import org.jsoup.select.Elements;
 import org.junit.Test;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.lang.HttpClientHelper;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
-@Component
+@Service
 public class AshamedQiushibaike {
 	private static final Log log = LogFactory.getLog(AshamedQiushibaike.class);
 
