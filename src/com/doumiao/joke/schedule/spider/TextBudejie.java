@@ -117,7 +117,7 @@ public class TextBudejie {
 			return ListUtils.EMPTY_LIST;
 		}
 		Elements es = listDoc
-				.select("div.web_left.floatl.test");
+				.select("div.web_left.floatl.test div.white_border div.web_conter.clear div.post-body p.web_size");
 		List<Article> l = new ArrayList<Article>(es.size());
 		for (int i = 0; i < es.size(); i++) {
 			Article a = new Article();
