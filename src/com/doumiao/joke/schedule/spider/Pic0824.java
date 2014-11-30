@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -39,7 +41,6 @@ public class Pic0824 {
 	private RandFetchMember randFetchMember;
 
 	@Scheduled(fixedDelay = 180000)
-	@Test
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_pic_0824", 10);
 		int count = maxPage;
@@ -63,8 +64,8 @@ public class Pic0824 {
 					url = "http://www.0824.com/" + cat + "_" + page + "/";
 					try {
 						List<Article> articles = fetch(url);
-						if(log.isDebugEnabled()){
-							log.debug(url+":"+articles.size());
+						if (log.isDebugEnabled()) {
+							log.debug(url + ":" + articles.size());
 						}
 						for (Article a : articles) {
 							stmt_select.setString(1, site);
@@ -80,7 +81,8 @@ public class Pic0824 {
 							stmt_insert.setString(++col, a.getTitle());
 							stmt_insert.setString(++col, a.getPicOri());
 
-							stmt_insert.setString(++col, ArticleType.PIC.name());
+							stmt_insert
+									.setString(++col, ArticleType.PIC.name());
 							stmt_insert.setString(++col, site);
 							stmt_insert.setString(++col, a.getFetchSitePid());
 							stmt_insert.setInt(++col, randFetchMember.next());
@@ -112,9 +114,8 @@ public class Pic0824 {
 			JdbcUtils.closeStatement(stmt_select);
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	@Test
 	private List<Article> fetch(String url) throws Exception {
 		Document listDoc;
 		try {
@@ -125,6 +126,7 @@ public class Pic0824 {
 		}
 		Elements es = listDoc.select("div.rt");
 		List<Article> l = new ArrayList<Article>(es.size());
+		Pattern p = Pattern.compile("/(\\d+).html");
 		for (int i = 0; i < es.size(); i++) {
 			Article a = new Article();
 			Element e = es.get(i);
@@ -135,15 +137,27 @@ public class Pic0824 {
 			}
 			String title = titleE.text();
 			String picOri = imgE.attr("src");
-			String id = titleE.attr("href")
-					.replace("http://www.0824.com/neihan/", "")
-					.replace(".html", "");
-			a.setFetchSitePid(id);
+			Matcher m = p.matcher(titleE.attr("href"));
+			if (m.find()) {
+				a.setFetchSitePid(m.group(1));
+			} else {
+				continue;
+			}
 			a.setTitle(title);
 			a.setPicOri(picOri);
 			l.add(a);
 		}
 		return l;
+	}
+
+	@Test
+	public void test() {
+		try {
+			fetch("http://www.0824.com/egao_1/");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
