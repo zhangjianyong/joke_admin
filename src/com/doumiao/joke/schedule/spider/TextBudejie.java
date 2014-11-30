@@ -15,6 +15,10 @@ import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import com.doumiao.joke.enums.ArticleType;
 import com.doumiao.joke.lang.Article;
+import com.doumiao.joke.lang.HttpClientHelper;
 import com.doumiao.joke.schedule.Config;
 import com.doumiao.joke.schedule.RandFetchMember;
 
@@ -111,7 +116,10 @@ public class TextBudejie {
 	public List<Article> fetch(String url) throws Exception {
 		Document listDoc;
 		try {
-			listDoc = Jsoup.connect(url).get();
+			HttpClient client = HttpClientHelper.getClient();
+			HttpGet get = new HttpGet(url);
+			HttpResponse response = client.execute(get);
+			listDoc = Jsoup.parse(EntityUtils.toString(response.getEntity(),"utf-8"));
 		} catch (IOException e) {
 			log.error(e, e);
 			return ListUtils.EMPTY_LIST;

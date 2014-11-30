@@ -30,7 +30,7 @@ public class HttpClientHelper {
 			HttpConnectionParams.setSocketBufferSize(params, 8192);
 			HttpProtocolParams
 					.setUserAgent(params,
-							"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.5)");
+							"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36");
 			HttpConnectionParams.setConnectionTimeout(params, 1000);
 			HttpConnectionParams.setSoTimeout(params, 5000);
 			return params;
