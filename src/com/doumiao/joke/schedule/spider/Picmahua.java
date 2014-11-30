@@ -68,6 +68,7 @@ public class Picmahua {
 						log.debug(url+":"+articles.size());
 					}
 					for (Article a : articles) {
+						fetch++;
 						stmt_select.setString(1, site);
 						stmt_select.setString(2, a.getFetchSitePid());
 						stmt_select.setString(3, ArticleType.PIC.name());
