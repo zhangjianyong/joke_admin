@@ -10,6 +10,8 @@ public class Article {
 	private ArticleType type;
 	private String fetchSite;
 	private String fetchSitePid;
+	private int memberId;
+	private int status;
 
 	public String getTitle() {
 		return title;
@@ -65,6 +67,30 @@ public class Article {
 
 	public void setFetchSitePid(String fetchSitePid) {
 		this.fetchSitePid = fetchSitePid;
+	}
+
+	public int getMemberId() {
+		return memberId;
+	}
+
+	public void setMemberId(int memberId) {
+		this.memberId = memberId;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	@Override
+	public String toString() {
+		return "Article [title=" + title + ", content=" + content + ", pic="
+				+ pic + ", picOri=" + picOri + ", type=" + type
+				+ ", fetchSite=" + fetchSite + ", fetchSitePid=" + fetchSitePid
+				+ ", memberId=" + memberId + ", status=" + status + "]";
 	}
 
 }

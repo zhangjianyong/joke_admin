@@ -29,8 +29,7 @@ public class UploadPic {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	@Test
-	@Scheduled(fixedDelay = 60000)
+	//@Scheduled(fixedDelay = 60000)
 	public void upload() {
 
 		UpYun upyun = new UpYun("yixiaoqianjin", "zhangjianyong", "Danawa1234");

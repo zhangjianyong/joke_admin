@@ -13,10 +13,11 @@ import com.doumiao.joke.schedule.UpYun.FolderItem;
 
 public class UpYunTest {
 
+	@Test
 	public void uploadStatic() {
 		String[] dirs = new String[] {
-		// "D:/data/workspace/pri/java/joke/WebContent/static/js",
-		"D:/data/workspace/pri/java/joke/WebContent/static/css"
+		 "/Users/idios/workspace/java/joke/WebContent/static/js",
+		"/Users/idios/workspace/java/joke/WebContent/static/css"
 		// "D:/data/workspace/pri/java/joke/WebContent/static/flash",
 		// "D:/data/workspace/pri/java/joke/WebContent/static/images",
 		// "D:/data/workspace/pri/java/joke/WebContent/static/avatar"
@@ -35,7 +36,7 @@ public class UpYunTest {
 		} else {
 			try {
 				String path = file.getPath().replace(
-						"D:\\data\\workspace\\pri\\java\\joke\\WebContent\\",
+						"/Users/idios/workspace/java/joke/WebContent/",
 						"");
 				System.out.println(path);
 				UpYun yun = UpYunHelper.getClient();
