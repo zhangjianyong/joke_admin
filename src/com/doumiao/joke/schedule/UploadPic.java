@@ -14,7 +14,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,7 +28,7 @@ public class UploadPic {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	//@Scheduled(fixedDelay = 60000)
+	@Scheduled(fixedDelay = 60000)
 	public void upload() {
 
 		UpYun upyun = new UpYun("yixiaoqianjin", "zhangjianyong", "Danawa1234");
