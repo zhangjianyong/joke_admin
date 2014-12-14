@@ -100,7 +100,7 @@ public class ArticleService {
 			"Exception" }, propagation = Propagation.REQUIRED)
 	public synchronized int[] insertAshamedArticles(final List<Article> articles)
 			throws Exception {
-		String sql = "insert into joke_article(title, content, type, fetch_site, fetch_site_pid,` status`, member_id ) values(?,?,?,?,?,?,?)";
+		String sql = "insert into joke_article(title, content, type, fetch_site, fetch_site_pid, `status`, member_id ) values(?,?,?,?,?,?,?)";
 		BatchPreparedStatementSetter setter = new BatchPreparedStatementSetter() {
 			public void setValues(PreparedStatement ps, int i)
 					throws SQLException {

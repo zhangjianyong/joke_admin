@@ -77,7 +77,7 @@ public class AshamedQiushibaike {
 		for (int i = 0; i < es.size(); i++) {
 			Article a = new Article();
 			a.setFetchSite(site);
-			a.setStatus(0);
+			a.setStatus(2);
 			Element e = es.get(i);
 			String id = e.attr("id").replace("qiushi_tag_", "");
 			Element contentE = e.select("div.content").first();
