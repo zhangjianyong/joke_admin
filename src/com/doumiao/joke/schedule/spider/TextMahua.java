@@ -52,7 +52,7 @@ public class TextMahua {
 					if (log.isDebugEnabled()) {
 						log.debug(url + ":" + articles.size());
 					}
-					articleService.insertPicArticles(articles);
+					articleService.insertTextArticles(articles);
 				} catch (SocketTimeoutException ste) {
 					log.error(url);
 					log.error(ste.getMessage());

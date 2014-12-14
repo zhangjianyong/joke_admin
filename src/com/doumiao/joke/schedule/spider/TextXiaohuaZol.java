@@ -51,7 +51,7 @@ public class TextXiaohuaZol {
 					if (log.isDebugEnabled()) {
 						log.debug(url + ":" + articles.size());
 					}
-					articleService.insertPicArticles(articles);
+					articleService.insertTextArticles(articles);
 				} catch (Exception e) {
 					log.error(url);
 				}

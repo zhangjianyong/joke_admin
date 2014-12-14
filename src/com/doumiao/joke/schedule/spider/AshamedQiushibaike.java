@@ -49,7 +49,7 @@ public class AshamedQiushibaike {
 					if (log.isDebugEnabled()) {
 						log.debug(url + ":" + articles.size());
 					}
-					articleService.insertPicArticles(articles);
+					articleService.insertAshamedArticles(articles);
 				} catch (SocketTimeoutException ste) {
 					log.error(url);
 					log.error(ste.getMessage());

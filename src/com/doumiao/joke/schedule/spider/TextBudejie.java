@@ -29,7 +29,7 @@ import com.doumiao.joke.service.ArticleService;
 public class TextBudejie {
 	private static final Log log = LogFactory.getLog(TextBudejie.class);
 
-	String site = "budejie.com/";
+	String site = "budejie.com";
 	@Resource
 	private ArticleService articleService;
 
@@ -47,7 +47,7 @@ public class TextBudejie {
 					if (log.isDebugEnabled()) {
 						log.debug(url + ":" + articles.size());
 					}
-					articleService.insertPicArticles(articles);
+					articleService.insertTextArticles(articles);
 				} catch (SocketTimeoutException ste) {
 					log.error(url);
 					log.error(ste.getMessage());
