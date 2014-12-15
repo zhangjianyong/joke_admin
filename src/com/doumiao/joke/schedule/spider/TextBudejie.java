@@ -67,9 +67,16 @@ public class TextBudejie {
 	public List<Article> fetch(String url) throws Exception {
 		HttpClient client = HttpClientHelper.getClient();
 		HttpGet get = new HttpGet(url);
-		HttpResponse response = client.execute(get);
-		Document listDoc = Jsoup.parse(EntityUtils.toString(
-				response.getEntity(), "utf-8"));
+		Document listDoc = null;
+		try {
+			HttpResponse response = client.execute(get);
+			listDoc = Jsoup.parse(EntityUtils.toString(response.getEntity(),
+					"utf-8"));
+		} catch (Exception e) {
+			log.error(e, e);
+		} finally {
+			get.releaseConnection();
+		}
 		Elements es = listDoc
 				.select("div.web_left.floatl.test div.white_border div.web_conter.clear div.post-body p.web_size");
 		List<Article> l = new ArrayList<Article>(es.size());

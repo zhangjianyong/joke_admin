@@ -43,7 +43,8 @@ public class UploadPic {
 						"select value from joke_config where `key` = 'pic_upload_path'",
 						String.class);
 		int sum = 0, error = 0;
-
+		HttpResponse response = null;
+		HttpGet get = null;
 		for (Map<String, Object> article : articles) {
 			try {
 				int id = (Integer) article.get("id");
@@ -68,8 +69,8 @@ public class UploadPic {
 				sum++;
 				HttpClient client = HttpClientHelper.getClient();
 				String picDomain = Config.get("pic_domain");
-				HttpGet get = new HttpGet(picDomain + "/article/0" + pic);
-				HttpResponse response = client.execute(get);
+				get = new HttpGet(picDomain + "/article/0" + pic);
+				response = client.execute(get);
 				if (result & r
 						& response.getStatusLine().getStatusCode() == 200) {
 					if (log.isDebugEnabled()) {
@@ -93,6 +94,8 @@ public class UploadPic {
 			} catch (Exception e) {
 				error++;
 				log.error(e, e);
+			} finally{
+				get.releaseConnection();
 			}
 		}
 		if (log.isInfoEnabled()) {
