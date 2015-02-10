@@ -107,7 +107,6 @@ public class FetchPic {
 				error++;
 				log.error(url, e);
 			} finally {
-				get.releaseConnection();
 				IOUtils.closeQuietly(fout);
 			}
 		}
