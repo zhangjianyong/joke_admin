@@ -64,7 +64,7 @@ public class FetchPic {
 				now.add(Calendar.DAY_OF_MONTH, -1);
 				if (createTime.before(now.getTime())) {
 					jdbcTemplate.update(
-							"update joke_article status = ? where id = ?", 3,
+							"update joke_article set `status` = ? where id = ?", 3,
 							id);
 				}
 				if (picOri != null) {
