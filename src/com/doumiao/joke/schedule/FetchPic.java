@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class FetchPic {
 	public void fetch() {
 		String[] types = { "gif", "png", "jpg", "jpeg", "bmp" };
 		List<Map<String, Object>> articles = jdbcTemplate
-				.queryForList("select id, pic_ori,pic,fetch_site from joke_article where type = 'PIC' and `status` = 0 order by id desc limit 0,100");
+				.queryForList("select id, pic_ori,pic,fetch_site,create_time from joke_article where type = 'PIC' and `status` = 0 order by id desc limit 0,100");
 
 		String path = jdbcTemplate
 				.queryForObject(
@@ -49,7 +50,8 @@ public class FetchPic {
 		HttpGet get = null;
 		HttpEntity entity = null;
 		FileOutputStream fout = null;
-		int sum = 0,error = 0;;
+		int sum = 0, error = 0;
+		;
 		for (Map<String, Object> article : articles) {
 			String url = null;
 			String fileName = null;
@@ -57,6 +59,14 @@ public class FetchPic {
 				int id = (Integer) article.get("id");
 				Object picOri = article.get("pic_ori");
 				Object pic = article.get("pic");
+				Date createTime = (Date) article.get("create_time");
+				Calendar now = Calendar.getInstance();
+				now.add(Calendar.DAY_OF_MONTH, -1);
+				if (createTime.before(now.getTime())) {
+					jdbcTemplate.update(
+							"update joke_article status = ? where id = ?", 3,
+							id);
+				}
 				if (picOri != null) {
 					url = (String) picOri;
 					String picType = url.substring(url.lastIndexOf(".") + 1);
@@ -90,7 +100,7 @@ public class FetchPic {
 									.outputQuality(1).scale(1).toFile(file);
 						}
 					}
-				} else if (pic != null && article.get("fetch_site")==null) {
+				} else if (pic != null && article.get("fetch_site") == null) {
 					fileName = (String) pic;
 				}
 				sum++;
@@ -111,12 +121,12 @@ public class FetchPic {
 			}
 		}
 		if (log.isInfoEnabled()) {
-			log.info("fetch pic:" + sum+" error:"+error);
+			log.info("fetch pic:" + sum + " error:" + error);
 		}
 	}
 
 	public static void main(String[] args) {
-		String url = "http://i1.juyouqu.com/uploads/content//2013/01/1357282467422.gif";
+		String url = "http://i2.mhimg.com/M00/0E/7D/CgAAilTOCaKAGJH1AACMpM9VGao189.jpg";
 		System.out.println(url.substring(url.lastIndexOf(".") + 1));
 	}
 }
