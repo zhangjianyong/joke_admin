@@ -34,7 +34,7 @@ public class PicJuyouqu {
 
 	String site = "juyouqu.com";
 
-	@Scheduled(fixedDelay = 18000)
+	@Scheduled(fixedDelay = 180000)
 	public void fetch() {
 		int maxPage = Config.getInt("fetch_pages_pic_juyouqu", 10);
 		int count = maxPage;
