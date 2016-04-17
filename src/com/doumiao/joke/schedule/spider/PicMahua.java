@@ -77,6 +77,10 @@ public class PicMahua {
 			}
 			String title = titleE.text();
 			String picOri = imgE.attr("src");
+			if (log.isDebugEnabled()) {
+				log.debug("url:" + url + ",title:" + title + ",picOri:"
+						+ picOri);
+			}
 			a.setFetchSitePid(id);
 			a.setTitle(title);
 			a.setPicOri(picOri);
