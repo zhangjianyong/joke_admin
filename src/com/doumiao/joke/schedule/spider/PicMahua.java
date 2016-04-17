@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jsoup.Jsoup;
@@ -77,6 +78,13 @@ public class PicMahua {
 			}
 			String title = titleE.text();
 			String picOri = imgE.attr("src");
+			String picOri_lazy = imgE.attr("mahuaImg");
+			if(StringUtils.isEmpty(picOri)){
+				picOri = picOri_lazy;
+			}
+			if(StringUtils.isEmpty(picOri)){
+				log.debug("pic is empty:"+ url + ",title:" + title);
+			}
 			if (log.isDebugEnabled()) {
 				log.debug("url:" + url + ",title:" + title + ",picOri:"
 						+ picOri);
