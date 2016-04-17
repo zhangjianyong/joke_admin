@@ -63,10 +63,10 @@ public class FetchPic {
 				Calendar now = Calendar.getInstance();
 				now.add(Calendar.DAY_OF_MONTH, -1);
 				if (createTime.before(now.getTime())) {
-					log.info("invalid pic,article id:"+String.valueOf(id));
-					jdbcTemplate.update(
-							"update joke_article set `status` = ? where id = ?", 3,
-							id);
+					log.info("invalid pic,article id:" + String.valueOf(id));
+					jdbcTemplate
+							.update("update joke_article set `status` = ? where id = ?",
+									3, id);
 				}
 				if (picOri != null) {
 					url = (String) picOri;
@@ -89,7 +89,9 @@ public class FetchPic {
 						if ("gif".equals(picType.toLowerCase())) {
 							get = new HttpGet(url);
 							entity = client.execute(get).getEntity();
-							IOUtils.copy(entity.getContent(), fout);
+							if (entity.getContentLength() > 0) {
+								IOUtils.copy(entity.getContent(), fout);
+							}
 						} else {
 							Thumbnails
 									.of(new URL(url))

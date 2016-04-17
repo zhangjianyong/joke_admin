@@ -2,6 +2,7 @@ package com.doumiao.joke.schedule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +47,10 @@ public class UploadPic {
 		HttpResponse response = null;
 		HttpGet get = null;
 		for (Map<String, Object> article : articles) {
+			int id = (Integer) article.get("id");
+			int articleId = (Integer) article.get("article_id");
+			String pic = (String) article.get("pic");
 			try {
-				int id = (Integer) article.get("id");
-				int articleId = (Integer) article.get("article_id");
-				String pic = (String) article.get("pic");
-
 				File picFile = new File(path + "/" + pic);
 
 				upyun.setContentMD5(UpYun.md5(picFile));
@@ -78,7 +78,7 @@ public class UploadPic {
 					}
 					jdbcTemplate
 							.update("update joke_article set `status` = ? where id = ?",
-									2, articleId);
+									3, articleId);
 					jdbcTemplate.update(
 							"delete from joke_upload_pic where id = ?", id);
 				} else {
@@ -91,12 +91,25 @@ public class UploadPic {
 			} catch (SocketTimeoutException ste) {
 				error++;
 				log.error(ste.getMessage());
+			} catch (IOException e) {
+				error++;
+				String msg = e.getMessage();
+				log.error(e.getMessage());
+				if (msg.contains("not an image")) {
+					jdbcTemplate
+							.update("update joke_article set `status` = ? where id = ?",
+									0, articleId);
+					jdbcTemplate.update(
+							"delete from joke_upload_pic where id = ?", id);
+				}
 			} catch (Exception e) {
 				error++;
 				log.error(e, e);
-			} finally{
+			} finally {
 				get.releaseConnection();
 			}
+			// java.io.IOException:
+			// {"msg":"not an image","code":40300018,"id":"e2f1031873b5a01b46488416197815d6"}
 		}
 		if (log.isInfoEnabled()) {
 			log.info("upload pic:" + sum + " error:" + error);

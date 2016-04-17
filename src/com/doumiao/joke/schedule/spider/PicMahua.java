@@ -79,11 +79,11 @@ public class PicMahua {
 			String title = titleE.text();
 			String picOri = imgE.attr("src");
 			String picOri_lazy = imgE.attr("mahuaImg");
-			if(StringUtils.isEmpty(picOri)){
+			if (StringUtils.isEmpty(picOri)) {
 				picOri = picOri_lazy;
 			}
-			if(StringUtils.isEmpty(picOri)){
-				log.debug("pic is empty:"+ url + ",title:" + title);
+			if (StringUtils.isEmpty(picOri)) {
+				log.debug("pic is empty:" + url + ",title:" + title);
 			}
 			if (log.isDebugEnabled()) {
 				log.debug("url:" + url + ",title:" + title + ",picOri:"
