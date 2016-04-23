@@ -78,7 +78,7 @@ public class UploadPic {
 					}
 					jdbcTemplate
 							.update("update joke_article set `status` = ? where id = ?",
-									3, articleId);
+									2, articleId);
 					jdbcTemplate.update(
 							"delete from joke_upload_pic where id = ?", id);
 				} else {
