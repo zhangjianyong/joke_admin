@@ -17,10 +17,10 @@ public class UpYunTest {
 	public void uploadStatic() {
 		String[] dirs = new String[] {
 		 "D:/data/workspace/pri/java/joke/WebContent/static/js",
-		//"/Users/idios/workspace/java/joke/WebContent/static/css"
+		"D:/data/workspace/pri/java/joke/WebContent/static/css",
 		// "D:/data/workspace/pri/java/joke/WebContent/static/flash",
-		// "D:/data/workspace/pri/java/joke/WebContent/static/images",
-		// "D:/data/workspace/pri/java/joke/WebContent/static/avatar"
+		 "D:/data/workspace/pri/java/joke/WebContent/static/images",
+		"D:/data/workspace/pri/java/joke/WebContent/static/avatar"
 		};
 		for (String d : dirs) {
 			File df = new File(d);
@@ -37,7 +37,7 @@ public class UpYunTest {
 			try {
 				String path = file.getPath().replace(
 						"D:\\data\\workspace\\pri\\java\\joke\\WebContent\\",
-						"");
+						"").replace("\\", "/");
 				System.out.println(path);
 				UpYun yun = UpYunHelper.getClient();
 				yun.setContentMD5(UpYun.md5(file));
@@ -61,7 +61,7 @@ public class UpYunTest {
 	public void showFiles() {
 		System.out.println("start show files");
 		List<String[]> l = new ArrayList<String[]>();
-		list("", l, 3);
+		list("static", l, 4);
 		for (String[] s : l) {
 			System.out.println(s[1]);
 		}
@@ -70,7 +70,7 @@ public class UpYunTest {
 	public void deleteFiles() {
 		UpYun client = UpYunHelper.getClient();
 		List<String[]> l = new ArrayList<String[]>();
-		list("D:", l, 10);
+		list("/static\\js", l, 10);
 		for (String[] s : l) {
 			if (s[0].equals("d")) {
 				client.rmDir(s[1]);
