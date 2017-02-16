@@ -18,7 +18,7 @@ public class ThirdPlatAccountBlacklistd {
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
-	@Scheduled(cron = "0 0 16 * * ?")
+	@Scheduled(cron = "0 10 0 * * ?")
 	protected void blacklist() {
 		if (log.isInfoEnabled()) {
 			log.info("blacklist");
@@ -31,14 +31,14 @@ public class ThirdPlatAccountBlacklistd {
 			List<Integer> mids = jdbcTemplate.queryForList(
 					"SELECT member_id FROM uc_thirdplat_account a WHERE a.account = ? AND NOT EXISTS (SELECT * FROM uc_member u WHERE u.status = 1 AND a.member_id = u.id)",
 					Integer.class, account);
-			String sql = "SELECT * FROM uc_account_log WHERE wealth_type = 'DRAW' AND account = 'S3' "
-					+ "AND create_time > DATE_ADD(CURDATE(), INTERVAL -7 DAY) " + "AND member_id IN("
-					+ StringUtils.join(mids, ",") + ")";
-			// 以上用户在过去一个月内总的抽奖次数
+			String sql = "SELECT count(*) FROM uc_account_log WHERE wealth_type = 'DRAW' AND account = 'S3' "
+					+ "AND create_time BETWEEN  DATE_ADD(CURDATE(), INTERVAL -7 DAY) AND CURDATE() "
+					+ "AND member_id IN(" + StringUtils.join(mids, ",") + ")";
+			// 以上用户在过去一周内总的抽奖次数
 			int count = jdbcTemplate.queryForInt(sql);
 			int average = count / 7;
 			if (average > 5) {
-				log.warn("account " + account + " draw " + average + " per day");
+				log.warn("account " + account + " draw " + average + " per day, user count " + mids.size());
 				for (Integer mid : mids) {
 					jdbcTemplate.update("update uc_member set status = 1, remark = '超多账号登录，账号冻结' where id = ?", mid);
 				}
