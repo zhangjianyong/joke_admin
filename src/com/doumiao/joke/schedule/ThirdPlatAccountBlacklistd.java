@@ -31,6 +31,8 @@ public class ThirdPlatAccountBlacklistd {
 			List<Integer> mids = jdbcTemplate.queryForList(
 					"SELECT member_id FROM uc_thirdplat_account a WHERE a.account = ? AND NOT EXISTS (SELECT * FROM uc_member u WHERE u.status = 1 AND a.member_id = u.id)",
 					Integer.class, account);
+			if (mids.size() == 0)
+				continue;
 			String sql = "SELECT count(*) FROM uc_account_log WHERE wealth_type = 'DRAW' AND account = 'S3' "
 					+ "AND create_time BETWEEN  DATE_ADD(CURDATE(), INTERVAL -7 DAY) AND CURDATE() "
 					+ "AND member_id IN(" + StringUtils.join(mids, ",") + ")";
